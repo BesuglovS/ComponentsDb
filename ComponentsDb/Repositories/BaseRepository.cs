@@ -10,10 +10,6 @@ namespace ComponentsDb.Repositories
 {
     public class BaseRepository<TObject> where TObject : class
     {
-        public BaseRepository()
-        {
-        }
-
         public virtual ICollection<TObject> GetAll()
         {
             using (var context = new DatabaseContext())

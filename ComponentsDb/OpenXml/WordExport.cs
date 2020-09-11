@@ -1,9 +1,7 @@
-﻿using ComponentsDb.Context;
-using ComponentsDb.DomainClasses;
+﻿using ComponentsDb.DomainClasses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Data.Entity;
 using System.Windows.Forms;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
@@ -16,19 +14,16 @@ namespace ComponentsDb.OpenXml
     {
         public static void ExportOpenXmlReport(TreeNode selectedNode)
         {
-            Component selectedComponent;
-            string[,] tableData;
-
             var selectedNodeId = (int)selectedNode.Tag;
 
             var repo = new ComponentsRepo();
-            selectedComponent = repo.Components.Find(c => c.Id == selectedNodeId);
+            var selectedComponent = repo.Components.Find(c => c.Id == selectedNodeId);
 
             var contents = new Dictionary<int, Tuple<string, int>>();
 
-            AddSubcomponents(ref contents, selectedComponent, 1);
+            AddSubComponents(ref contents, selectedComponent, 1);
 
-            tableData = new string[contents.Count, 2];
+            var tableData = new string[contents.Count, 2];
 
             var ids = contents.Keys.OrderBy(id => id).ToList();
             for (int i = 0; i < ids.Count; i++)
@@ -50,7 +45,7 @@ namespace ComponentsDb.OpenXml
             }
         }
 
-        public static void AddSubcomponents(ref Dictionary<int, Tuple<string, int>> contents, Component parentComponent,
+        public static void AddSubComponents(ref Dictionary<int, Tuple<string, int>> contents, Component parentComponent,
             int multiplier)
         {
             var repo = new ComponentsRepo();
@@ -61,7 +56,7 @@ namespace ComponentsDb.OpenXml
 
             foreach (var childLink in childrenLinks)
             {
-                var child = repo.Components.Get(childLink.ChildComponentId);
+                var child = repo.Components.GetWithParts(childLink.ChildComponentId);
 
                 if (child.Parts.Count == 0)
                 {
@@ -76,7 +71,7 @@ namespace ComponentsDb.OpenXml
                 }
                 else
                 {
-                    AddSubcomponents(ref contents, child, multiplier * childLink.Quantity);
+                    AddSubComponents(ref contents, child, multiplier * childLink.Quantity);
                 }
             }
         }
@@ -123,7 +118,7 @@ namespace ComponentsDb.OpenXml
                         Size = 12
                     }));
 
-                table.AppendChild<TableProperties>(props);
+                table.AppendChild(props);
 
                 for (var i = 0; i <= data.GetUpperBound(0); i++)
                 {

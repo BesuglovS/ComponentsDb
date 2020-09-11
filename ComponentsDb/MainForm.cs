@@ -5,7 +5,6 @@ using ComponentsDb.OpenXml;
 using ComponentsDb.Repositories;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -52,10 +51,8 @@ namespace ComponentsDb
         {
             foreach (var childLink in baseComponent.Parts)
             {
-                Component child;
-
                 var repo = new ComponentsRepo();
-                child = repo.Components
+                var child = repo.Components
                     .FindIncluded(c => c.Id == childLink.ChildComponentId);                
 
                 if (child != null)
@@ -154,16 +151,13 @@ namespace ComponentsDb
             string input = "";
             int componentId;
             decimal quantity = 0;
-            int selectedComponentId;
-            Component selectedComponent;
 
             var repo = new ComponentsRepo();
 
-            List<Component> embeddedComponents;
-            embeddedComponents = repo.Components.FindAll(c => !c.IsTopLevel).ToList();
+            var embeddedComponents = repo.Components.FindAll(c => !c.IsTopLevel).ToList();
 
-            selectedComponentId = (int)selectedNode.Tag;
-            selectedComponent = repo.Components
+            var selectedComponentId = (int)selectedNode.Tag;
+            var selectedComponent = repo.Components
                 .Find(c => c.Id == selectedComponentId);
 
             DialogResult result;
@@ -309,8 +303,10 @@ namespace ComponentsDb
                 if (selectedComponent != null)
                 {
                     selectedComponent.Name = input;
+
+                    repo.Components.Update(selectedComponent, selectedComponent.Id);
                 }
-                repo.Components.Update(selectedComponent, selectedComponent.Id);
+                
 
                 RefreshView();
             }
@@ -341,8 +337,8 @@ namespace ComponentsDb
 
                 var result = InputDialogs.RemoveChoice(
                     "Хотите ли вы разорвать связь между текущим компонентом (" +
-                    selectedComponent.ToString() + ") и его родителем (" +
-                    parentComponent.ToString() + ") " +
+                    selectedComponent + ") и его родителем (" +
+                    parentComponent + ") " +
                     "или только удалить текущий узел?");
 
                 if (result == DialogResult.Cancel)
